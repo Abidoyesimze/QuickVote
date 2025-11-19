@@ -1,42 +1,138 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import WalletButton from '@/components/WalletButton';
 import AdminPanel from '@/components/AdminPanel';
 import VotingStatus from '@/components/VotingStatus';
 import ContenderCard from '@/components/ContenderCard';
 import WinnerDisplay from '@/components/WinnerDisplay';
+import { useVotingContract } from '@/hooks/useVotingContract';
+import type { ContDetails } from '@/lib/contract';
 
-// Mock data - will be replaced with real contract data
-const mockContenders = [
-  { code: 'CODE1', address: '0x1234567890123456789012345678901234567890', voteCount: 45 },
-  { code: 'CODE2', address: '0x2345678901234567890123456789012345678901', voteCount: 32 },
-  { code: 'CODE3', address: '0x3456789012345678901234567890123456789012', voteCount: 23 },
-];
+interface Contender {
+  code: string;
+  address: string;
+  voteCount: number;
+}
 
 export default function VotePage() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [address, setAddress] = useState<string>('');
-  const [isOwner, setIsOwner] = useState(false);
+  const {
+    address,
+    isConnected,
+    loading,
+    error,
+    isOwner,
+    getVotingStatus,
+    getAllContendersWithDetails,
+    getWinner,
+    hasVoted: checkHasVoted,
+    vote,
+    getTotalVotes,
+  } = useVotingContract();
+
+  const [contenders, setContenders] = useState<Contender[]>([]);
   const [votingActive, setVotingActive] = useState(false);
+  const [votingStartTime, setVotingStartTime] = useState<number>(0);
+  const [votingEndTime, setVotingEndTime] = useState<number>(0);
   const [hasVoted, setHasVoted] = useState(false);
+  const [totalVotes, setTotalVotes] = useState(0);
   const [winner, setWinner] = useState<{ address: string; code: string; voteCount: number } | undefined>();
+  const [isOwnerValue, setIsOwnerValue] = useState(false);
 
-  const handleConnectWallet = () => {
-    // TODO: Implement wallet connection
-    setIsConnected(true);
-    setAddress('0x1234567890123456789012345678901234567890');
-    setIsOwner(true); // Mock owner status
+  // Load voting status
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const loadStatus = async () => {
+      const status = await getVotingStatus();
+      if (status) {
+        setVotingActive(status.active);
+        setVotingStartTime(Number(status.startTime));
+        setVotingEndTime(Number(status.endTime));
+      }
+
+      const owner = await isOwner();
+      setIsOwnerValue(owner || false);
+
+      if (address) {
+        const voted = await checkHasVoted();
+        setHasVoted(voted || false);
+      }
+    };
+
+    loadStatus();
+  }, [isConnected, address, getVotingStatus, isOwner, checkHasVoted]);
+
+  // Load contenders
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const loadContenders = async () => {
+      const contenderDetails = await getAllContendersWithDetails();
+      
+      if (contenderDetails && contenderDetails.length > 0) {
+        const mapped: Contender[] = contenderDetails.map((detail) => ({
+          code: detail.code,
+          address: detail.contender,
+          voteCount: detail.votersNo,
+        }));
+        setContenders(mapped);
+      } else {
+        setContenders([]);
+      }
+
+      const total = await getTotalVotes();
+      setTotalVotes(Number(total || 0));
+    };
+
+    loadContenders();
+    
+    // Refresh every 5 seconds when voting is active
+    const interval = votingActive ? setInterval(loadContenders, 5000) : null;
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isConnected, getAllContendersWithDetails, getTotalVotes, votingActive]);
+
+  // Load winner if voting is not active
+  useEffect(() => {
+    if (votingActive) return;
+
+    const loadWinner = async () => {
+      if (!isConnected) return;
+      const winnerData = await getWinner();
+      if (winnerData) {
+        setWinner({
+          address: winnerData.winner,
+          code: winnerData.code,
+          voteCount: Number(winnerData.voteCount),
+        });
+      }
+    };
+
+    loadWinner();
+  }, [votingActive, isConnected, getWinner]);
+
+  const handleVote = async (code: string) => {
+    if (!isConnected || hasVoted) return;
+
+    try {
+      const tx = await vote(code);
+      if (tx) {
+        setHasVoted(true);
+        // Reload contender data
+        const status = await getVotingStatus();
+        if (status) {
+          setVotingActive(status.active);
+        }
+        // Refresh page data
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Vote error:', err);
+    }
   };
-
-  const handleVote = (code: string) => {
-    // TODO: Implement voting
-    console.log('Voting for:', code);
-    setHasVoted(true);
-  };
-
-  const totalVotes = mockContenders.reduce((sum, c) => sum + c.voteCount, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -62,11 +158,7 @@ export default function VotePage() {
               >
                 ← Back to Home
               </Link>
-              <WalletButton
-                onConnect={handleConnectWallet}
-                address={address}
-                isConnected={isConnected}
-              />
+            <WalletButton />
             </div>
           </div>
         </div>
@@ -74,12 +166,26 @@ export default function VotePage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-800">
+            <p className="font-semibold">Error: {error}</p>
+          </div>
+        )}
+
+        {/* Loading Indicator */}
+        {loading && (
+          <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-800 text-center">
+            <p className="font-semibold">Processing transaction...</p>
+          </div>
+        )}
+
         {/* Status Bar */}
         <div className="mb-8">
           <VotingStatus
             isActive={votingActive}
-            startTime={Date.now() / 1000}
-            endTime={(Date.now() / 1000) + 3600}
+            startTime={votingStartTime}
+            endTime={votingEndTime}
           />
         </div>
 
@@ -93,9 +199,9 @@ export default function VotePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Admin Panel */}
           <div className="lg:col-span-1">
-            {isConnected && isOwner && (
+            {isConnected && isOwnerValue && (
               <div className="mb-6">
-                <AdminPanel isOwner={isOwner} />
+                <AdminPanel isOwner={isOwnerValue} />
               </div>
             )}
 
@@ -109,7 +215,7 @@ export default function VotePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Contenders:</span>
-                  <span className="font-semibold">{mockContenders.length}</span>
+                  <span className="font-semibold">{contenders.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Network:</span>
@@ -132,20 +238,29 @@ export default function VotePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {mockContenders.map((contender) => (
-                <ContenderCard
-                  key={contender.code}
-                  code={contender.code}
-                  address={contender.address}
-                  voteCount={contender.voteCount}
-                  totalVotes={totalVotes}
-                  hasVoted={hasVoted}
-                  onVote={handleVote}
-                  isVotingActive={votingActive}
-                />
-              ))}
-            </div>
+            {contenders.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl border-2 border-gray-200">
+                <p className="text-gray-600 text-lg">
+                  No contenders registered yet.
+                  {isOwnerValue && ' Use the admin panel to register contenders.'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {contenders.map((contender) => (
+                  <ContenderCard
+                    key={contender.code}
+                    code={contender.code}
+                    address={contender.address}
+                    voteCount={contender.voteCount}
+                    totalVotes={totalVotes}
+                    hasVoted={hasVoted}
+                    onVote={handleVote}
+                    isVotingActive={votingActive}
+                  />
+                ))}
+              </div>
+            )}
 
             {!isConnected && (
               <div className="mt-8 text-center bg-blue-50 border-2 border-blue-200 rounded-xl p-8">
@@ -155,7 +270,7 @@ export default function VotePage() {
                 <p className="text-blue-600 mb-4">
                   Connect your wallet to participate in voting
                 </p>
-                <WalletButton onConnect={handleConnectWallet} />
+                <WalletButton />
               </div>
             )}
           </div>

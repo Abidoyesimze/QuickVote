@@ -1,12 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { useVotingContract } from '@/hooks/useVotingContract';
 
 interface AdminPanelProps {
   isOwner?: boolean;
 }
 
 export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
+  const {
+    loading,
+    error,
+    batchRegister,
+    registerContender,
+    startVoting,
+    endVoting,
+  } = useVotingContract();
+
   const [showPanel, setShowPanel] = useState(false);
   const [batchMode, setBatchMode] = useState(true);
   
@@ -23,24 +33,88 @@ export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
 
   if (!isOwner) return null;
 
-  const handleBatchRegistration = () => {
-    // TODO: Implement batch registration
-    console.log('Batch registration:', { batchAddresses, batchCodes });
+  const handleBatchRegistration = async () => {
+    if (batchAddresses.some(addr => !addr) || batchCodes.some(code => !code)) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const tx = await batchRegister(
+        batchAddresses as [string, string, string],
+        batchCodes as [string, string, string]
+      );
+      
+      if (tx) {
+        alert('Batch registration successful!');
+        setBatchAddresses(['', '', '']);
+        setBatchCodes(['', '', '']);
+        // Reload page to update contender list
+        window.location.reload();
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Failed to register contenders'}`);
+    }
   };
 
-  const handleSingleRegistration = () => {
-    // TODO: Implement single registration
-    console.log('Single registration:', { singleAddress, singleCode });
+  const handleSingleRegistration = async () => {
+    if (!singleAddress || !singleCode) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const tx = await registerContender(singleAddress, singleCode);
+      
+      if (tx) {
+        alert('Registration successful!');
+        setSingleAddress('');
+        setSingleCode('');
+        // Reload page to update contender list
+        window.location.reload();
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Failed to register contender'}`);
+    }
   };
 
-  const handleStartVoting = () => {
-    // TODO: Implement start voting
-    console.log('Start voting with duration:', duration);
+  const handleStartVoting = async () => {
+    const durationNum = parseInt(duration, 10);
+    if (!durationNum || durationNum <= 0) {
+      alert('Please enter a valid duration in seconds');
+      return;
+    }
+
+    try {
+      const tx = await startVoting(durationNum);
+      
+      if (tx) {
+        alert('Voting started!');
+        setDuration('');
+        // Reload page to update voting status
+        window.location.reload();
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Failed to start voting'}`);
+    }
   };
 
-  const handleEndVoting = () => {
-    // TODO: Implement end voting
-    console.log('End voting');
+  const handleEndVoting = async () => {
+    if (!confirm('Are you sure you want to end voting?')) {
+      return;
+    }
+
+    try {
+      const tx = await endVoting();
+      
+      if (tx) {
+        alert('Voting ended!');
+        // Reload page to update voting status
+        window.location.reload();
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Failed to end voting'}`);
+    }
   };
 
   return (
@@ -59,6 +133,18 @@ export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
           {showPanel ? '▼' : '▶'}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm text-center">
+          Processing transaction...
+        </div>
+      )}
 
       {showPanel && (
         <div className="space-y-6">
@@ -118,9 +204,10 @@ export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
               ))}
               <button
                 onClick={handleBatchRegistration}
-                className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                disabled={loading}
+                className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Register All 3 Contenders
+                {loading ? 'Processing...' : 'Register All 3 Contenders'}
               </button>
             </div>
           )}
@@ -145,9 +232,10 @@ export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
               />
               <button
                 onClick={handleSingleRegistration}
-                className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                disabled={loading}
+                className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Register Contender
+                {loading ? 'Processing...' : 'Register Contender'}
               </button>
             </div>
           )}
@@ -165,9 +253,10 @@ export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
               />
               <button
                 onClick={handleStartVoting}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                disabled={loading}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Start Voting
+                {loading ? 'Processing...' : 'Start Voting'}
               </button>
             </div>
           </div>
@@ -176,9 +265,10 @@ export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
           <div className="pt-4 border-t border-gray-200">
             <button
               onClick={handleEndVoting}
-              className="w-full py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+              disabled={loading}
+              className="w-full py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              End Voting
+              {loading ? 'Processing...' : 'End Voting'}
             </button>
           </div>
         </div>

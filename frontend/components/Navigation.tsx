@@ -4,13 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import WalletButton from './WalletButton';
 
-interface NavigationProps {
-  onConnect?: () => void;
-  address?: string;
-  isConnected?: boolean;
-}
-
-export default function Navigation({ onConnect, address, isConnected }: NavigationProps) {
+export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -70,11 +64,7 @@ export default function Navigation({ onConnect, address, isConnected }: Navigati
             </Link>
           </div>
 
-          <WalletButton
-            onConnect={onConnect}
-            address={address}
-            isConnected={isConnected}
-          />
+          <WalletButton />
         </div>
       </div>
     </nav>
