@@ -212,10 +212,11 @@ contract VotingContract {
         require(!votingActive, "Voting is still active");
         require(contenderCount > 0, "No contenders registered");
 
-        address currentWinner = address(0);
-        uint32 maxVotes = 0;
+        address currentWinner = contendersList[0];
+        ContDetails memory firstDetails = contenderdet[currentWinner];
+        uint32 maxVotes = firstDetails.votersNo;
 
-        for (uint256 i = 0; i < contendersList.length; i++) {
+        for (uint256 i = 1; i < contendersList.length; i++) {
             address contender = contendersList[i];
             ContDetails memory details = contenderdet[contender];
             
@@ -224,8 +225,6 @@ contract VotingContract {
                 currentWinner = contender;
             }
         }
-
-        require(currentWinner != address(0), "No winner found");
         
         ContDetails memory winnerDetails = contenderdet[currentWinner];
         return (currentWinner, winnerDetails.code, maxVotes);
