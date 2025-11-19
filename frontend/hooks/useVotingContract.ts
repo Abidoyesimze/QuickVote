@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { EventLog } from 'ethers';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { getVotingContract, getVotingContractWithSigner, type ContDetails, CONTRACT_ADDRESS } from '@/lib/contract';
 
 export function useVotingContract() {
-  const { address, isConnected, chainId } = useAppKitAccount();
+  const { address, isConnected } = useAppKitAccount();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,7 +72,7 @@ export function useVotingContract() {
     });
   }, [writeContract]);
 
-  const batchRegister = useCallback(async (contenders: string[3], codes: string[3]) => {
+  const batchRegister = useCallback(async (contenders: [string, string, string], codes: [string, string, string]) => {
     return writeContract(async (contract) => {
       const tx = await contract.batchRegistration(contenders, codes);
       await tx.wait();
@@ -147,8 +148,8 @@ export function useVotingContract() {
       // Create a map of address to code from events
       const addressToCode = new Map<string, string>();
       events.forEach((event) => {
-        if (event.args) {
-          addressToCode.set(event.args.contender.toLowerCase(), event.args.code);
+        if (event instanceof EventLog && event.args) {
+          addressToCode.set(String(event.args[0]).toLowerCase(), String(event.args[1]));
         }
       });
 

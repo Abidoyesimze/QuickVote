@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
     
     return config;
   },
+  // Add empty turbopack config to silence the error
+  // Next.js will use webpack when both are present
+  turbopack: {},
 };
 
 export default nextConfig;

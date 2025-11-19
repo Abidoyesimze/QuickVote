@@ -5,7 +5,7 @@ import { useAppKitAccount } from '@reown/appkit/react';
 
 export default function WalletButton() {
   const { open } = useAppKit();
-  const { address, isConnected, chainId } = useAppKitAccount();
+  const { address, isConnected } = useAppKitAccount();
 
   const formatAddress = (addr: string) => {
     if (!addr) return '';
@@ -18,15 +18,8 @@ export default function WalletButton() {
     }
   };
 
-  const isCorrectNetwork = chainId === 84532; // Base Sepolia
-
   return (
     <div className="flex items-center gap-2">
-      {isConnected && !isCorrectNetwork && (
-        <span className="text-xs text-red-600 font-medium px-2 py-1 bg-red-50 rounded-lg">
-          Wrong Network
-        </span>
-      )}
       <button
         onClick={handleClick}
         className={`

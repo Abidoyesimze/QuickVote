@@ -40,10 +40,7 @@ const metadata = {
 }
 
 // Create Ethers adapter
-const ethersAdapter = new EthersAdapter({
-  projectId,
-  networks: [baseSepolia],
-})
+const ethersAdapter = new EthersAdapter()
 
 // Initialize AppKit
 createAppKit({
