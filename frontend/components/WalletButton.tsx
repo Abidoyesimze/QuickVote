@@ -19,10 +19,10 @@ export default function WalletButton({
     <button
       onClick={onConnect}
       className={`
-        px-6 py-2.5 rounded-lg font-medium transition-all duration-200
+        px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105
         ${isConnected
-          ? 'bg-green-500 text-white hover:bg-green-600'
-          : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
+          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl'
+          : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
         }
       `}
     >

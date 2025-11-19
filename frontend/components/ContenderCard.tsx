@@ -26,17 +26,20 @@ export default function ContenderCard({
   const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-100 hover:border-blue-300 transition-all hover:shadow-lg">
+    <div className="group bg-white rounded-2xl shadow-lg p-6 border-2 border-gray-100 hover:border-blue-400 transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-1">
       <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-1">{code}</h3>
-          <p className="text-sm text-gray-500 font-mono">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{code}</h3>
+          </div>
+          <p className="text-sm text-gray-500 font-mono bg-gray-50 px-3 py-1 rounded-lg inline-block">
             {formatAddress(address)}
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-3xl font-bold text-blue-600">{voteCount}</div>
-          <div className="text-xs text-gray-500">votes</div>
+        <div className="text-right ml-4">
+          <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{voteCount}</div>
+          <div className="text-xs text-gray-500 font-semibold">votes</div>
         </div>
       </div>
 

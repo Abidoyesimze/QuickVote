@@ -44,12 +44,17 @@ export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-100">
+    <div className="bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow-xl p-6 border-2 border-purple-200 hover:shadow-2xl transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Admin Panel</h2>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-xl">⚙️</span>
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">Admin Panel</h2>
+        </div>
         <button
           onClick={() => setShowPanel(!showPanel)}
-          className="text-gray-500 hover:text-gray-700"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors"
         >
           {showPanel ? '▼' : '▶'}
         </button>

@@ -44,8 +44,13 @@ export default function VotingStatus({
   }, [isActive, endTime]);
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-100">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Voting Status</h3>
+    <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-xl p-6 border-2 border-blue-100">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+          <span className="text-white text-lg">📊</span>
+        </div>
+        <h3 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Voting Status</h3>
+      </div>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Status:</span>
