@@ -1,0 +1,184 @@
+'use client';
+
+import { useState } from 'react';
+
+interface AdminPanelProps {
+  isOwner?: boolean;
+}
+
+export default function AdminPanel({ isOwner = false }: AdminPanelProps) {
+  const [showPanel, setShowPanel] = useState(false);
+  const [batchMode, setBatchMode] = useState(true);
+  
+  // Batch registration
+  const [batchAddresses, setBatchAddresses] = useState(['', '', '']);
+  const [batchCodes, setBatchCodes] = useState(['', '', '']);
+  
+  // Single registration
+  const [singleAddress, setSingleAddress] = useState('');
+  const [singleCode, setSingleCode] = useState('');
+  
+  // Start voting
+  const [duration, setDuration] = useState('');
+
+  if (!isOwner) return null;
+
+  const handleBatchRegistration = () => {
+    // TODO: Implement batch registration
+    console.log('Batch registration:', { batchAddresses, batchCodes });
+  };
+
+  const handleSingleRegistration = () => {
+    // TODO: Implement single registration
+    console.log('Single registration:', { singleAddress, singleCode });
+  };
+
+  const handleStartVoting = () => {
+    // TODO: Implement start voting
+    console.log('Start voting with duration:', duration);
+  };
+
+  const handleEndVoting = () => {
+    // TODO: Implement end voting
+    console.log('End voting');
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-100">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-gray-800">Admin Panel</h2>
+        <button
+          onClick={() => setShowPanel(!showPanel)}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          {showPanel ? '▼' : '▶'}
+        </button>
+      </div>
+
+      {showPanel && (
+        <div className="space-y-6">
+          {/* Registration Mode Toggle */}
+          <div className="flex gap-4 mb-4">
+            <button
+              onClick={() => setBatchMode(true)}
+              className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
+                batchMode
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Batch Registration (3 at once)
+            </button>
+            <button
+              onClick={() => setBatchMode(false)}
+              className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
+                !batchMode
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Single Registration
+            </button>
+          </div>
+
+          {/* Batch Registration Form */}
+          {batchMode && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-700">Register 3 Contenders</h3>
+              {[0, 1, 2].map((index) => (
+                <div key={index} className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    placeholder={`Contender ${index + 1} Address`}
+                    value={batchAddresses[index]}
+                    onChange={(e) => {
+                      const newAddrs = [...batchAddresses];
+                      newAddrs[index] = e.target.value;
+                      setBatchAddresses(newAddrs);
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    placeholder={`Code ${index + 1}`}
+                    value={batchCodes[index]}
+                    onChange={(e) => {
+                      const newCodes = [...batchCodes];
+                      newCodes[index] = e.target.value;
+                      setBatchCodes(newCodes);
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={handleBatchRegistration}
+                className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+              >
+                Register All 3 Contenders
+              </button>
+            </div>
+          )}
+
+          {/* Single Registration Form */}
+          {!batchMode && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-700">Register Single Contender</h3>
+              <input
+                type="text"
+                placeholder="Contender Address"
+                value={singleAddress}
+                onChange={(e) => setSingleAddress(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <input
+                type="text"
+                placeholder="Code"
+                value={singleCode}
+                onChange={(e) => setSingleCode(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleSingleRegistration}
+                className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+              >
+                Register Contender
+              </button>
+            </div>
+          )}
+
+          {/* Start Voting */}
+          <div className="pt-4 border-t border-gray-200">
+            <h3 className="font-semibold text-gray-700 mb-3">Start Voting</h3>
+            <div className="flex gap-3">
+              <input
+                type="number"
+                placeholder="Duration (seconds)"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleStartVoting}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              >
+                Start Voting
+              </button>
+            </div>
+          </div>
+
+          {/* End Voting */}
+          <div className="pt-4 border-t border-gray-200">
+            <button
+              onClick={handleEndVoting}
+              className="w-full py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+            >
+              End Voting
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

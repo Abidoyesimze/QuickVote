@@ -1,65 +1,171 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import WalletButton from '@/components/WalletButton';
+import AdminPanel from '@/components/AdminPanel';
+import VotingStatus from '@/components/VotingStatus';
+import ContenderCard from '@/components/ContenderCard';
+import WinnerDisplay from '@/components/WinnerDisplay';
+
+// Mock data - will be replaced with real contract data
+const mockContenders = [
+  { code: 'CODE1', address: '0x1234567890123456789012345678901234567890', voteCount: 45 },
+  { code: 'CODE2', address: '0x2345678901234567890123456789012345678901', voteCount: 32 },
+  { code: 'CODE3', address: '0x3456789012345678901234567890123456789012', voteCount: 23 },
+];
 
 export default function Home() {
+  const [isConnected, setIsConnected] = useState(false);
+  const [address, setAddress] = useState<string>('');
+  const [isOwner, setIsOwner] = useState(false);
+  const [votingActive, setVotingActive] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [winner, setWinner] = useState<{ address: string; code: string; voteCount: number } | undefined>();
+
+  const handleConnectWallet = () => {
+    // TODO: Implement wallet connection
+    setIsConnected(true);
+    setAddress('0x1234567890123456789012345678901234567890');
+    setIsOwner(true); // Mock owner status
+  };
+
+  const handleVote = (code: string) => {
+    // TODO: Implement voting
+    console.log('Voting for:', code);
+    setHasVoted(true);
+  };
+
+  const totalVotes = mockContenders.reduce((sum, c) => sum + c.voteCount, 0);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                QuickVote
+              </h1>
+              <p className="text-sm text-gray-500">Decentralized Voting on Base</p>
+            </div>
+            <WalletButton
+              onConnect={handleConnectWallet}
+              address={address}
+              isConnected={isConnected}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Status Bar */}
+        <div className="mb-8">
+          <VotingStatus
+            isActive={votingActive}
+            startTime={Date.now() / 1000}
+            endTime={(Date.now() / 1000) + 3600}
+          />
+        </div>
+
+        {/* Winner Display */}
+        {winner && (
+          <div className="mb-8">
+            <WinnerDisplay winner={winner} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Admin Panel */}
+          <div className="lg:col-span-1">
+            {isConnected && isOwner && (
+              <div className="mb-6">
+                <AdminPanel isOwner={isOwner} />
+              </div>
+            )}
+
+            {/* Info Card */}
+            <div className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-100">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Voting Info</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Votes:</span>
+                  <span className="font-semibold">{totalVotes}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Contenders:</span>
+                  <span className="font-semibold">{mockContenders.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Network:</span>
+                  <span className="font-semibold text-blue-600">Base Sepolia</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Contenders */}
+          <div className="lg:col-span-2">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Contenders</h2>
+              <p className="text-gray-600">
+                {votingActive
+                  ? hasVoted
+                    ? "You've already voted. Thanks for participating!"
+                    : 'Select a contender to vote'
+                  : 'Voting is not active yet'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {mockContenders.map((contender) => (
+                <ContenderCard
+                  key={contender.code}
+                  code={contender.code}
+                  address={contender.address}
+                  voteCount={contender.voteCount}
+                  totalVotes={totalVotes}
+                  hasVoted={hasVoted}
+                  onVote={handleVote}
+                  isVotingActive={votingActive}
+                />
+              ))}
+            </div>
+
+            {!isConnected && (
+              <div className="mt-8 text-center bg-blue-50 border-2 border-blue-200 rounded-xl p-8">
+                <h3 className="text-xl font-semibold text-blue-800 mb-2">
+                  Connect Your Wallet
+                </h3>
+                <p className="text-blue-600 mb-4">
+                  Connect your wallet to participate in voting
+                </p>
+                <WalletButton onConnect={handleConnectWallet} />
+              </div>
+            )}
+          </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center text-gray-600 text-sm">
+            <p>Contract: 0x0c8cF958759f547a9Cc53Edceb428a8244aF4586</p>
+            <p className="mt-2">
+              <a
+                href="https://sepolia.basescan.org/address/0x0c8cF958759f547a9Cc53Edceb428a8244aF4586"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                View on BaseScan
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
