@@ -6,7 +6,9 @@
 
 **Network:** Base Sepolia (Chain ID: 84532)
 
-**BaseScan:** https://sepolia.basescan.org/address/0x0c8cF958759f547a9Cc53Edceb428a8244aF4586
+**BaseScan:** https://sepolia.basescan.org/address/0x0c8cF958759f547a9Cc53Edceb428a8244aF4586#code
+
+**Status:** ✅ Verified and Published
 
 **Deployment Date:** November 19, 2024
 
